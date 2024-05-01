@@ -1,0 +1,15 @@
+{
+  "name": "tubebackend",
+  "version": "1.0.0",
+  "description": "A project focused on backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javaScript",
+    "backend"
+  ],
+  "author": "Aryan Kumar",
+  "license": "ISC"
+}

@@ -156,8 +156,8 @@ export const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined,
+            $unset: {
+                refreshToken: 1,
             }
         },
         {
@@ -203,7 +203,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === 'production', // Secure only in production
+            sameSite: 'Strict' // Add SameSite attribute to prevent CSRF attacks
         }
     
         const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id);
@@ -215,7 +216,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                {accessToken, refreshToken},
+                {accessToken,refreshToken: newRefreshToken},
                 "Access token refreshed successfully"
             )
         )
@@ -365,17 +366,15 @@ export const getUserChannelProfile = asyncHandler(async(req,res) => {
                 },
                 channelsSubscribedToCount: {
                     $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                        then: true,
+                        else: false
+                    }
                 }
-            }
-        },
-        {
-            isSubscribed: {
-                $cond: {
-                    if: {$in: [req.user?._id, "$subscribers.subscriber"]},
-                    then: true,
-                    else: false
-                }
-            }
+            },
         },
         {
             $project: {
